@@ -11,14 +11,14 @@ from torch.utils.data import Dataset
 #import matplotlib.pyplot as plt
 
 class FloatDataset(Dataset):
-    def __init__(self, x_list, y_list):
-        
+    def __init__(self, x_list, y_list, transform=None):
         self.x_list = [np.array(x, dtype=np.float64) for x in x_list]
         self.y_list = np.array(y_list, dtype=np.float64)
-
+        self.transform = transform
+        
+        # Convertir en tensors
         self.x_list = [torch.tensor(x, dtype=torch.float64) for x in self.x_list]
         self.y_list = torch.tensor(self.y_list, dtype=torch.float64)
-        
 
     def __len__(self):
         return len(self.x_list)
@@ -26,8 +26,12 @@ class FloatDataset(Dataset):
     def __getitem__(self, idx):
         x = self.x_list[idx]
         y = self.y_list[idx]
+        
+        if self.transform:
+            x = self.transform(x)
+        
         return x, y
-
+    
 def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
 
     # generate y sample on the unit circle (normalization of y imply x*=x/||y||)

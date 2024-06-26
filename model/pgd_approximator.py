@@ -15,8 +15,8 @@ class PGDAppproximator(nn.Module):
 
         # Create t pairs of linear layers
         for i in range(t):
-            self.layers.append(nn.Linear(20, 20))  # Linear layer for x
-            self.layers.append(nn.Linear(20, 20))  # Linear layer for y
+            self.layers.append(nn.Linear(100, 100))  # Linear layer for x
+            self.layers.append(nn.Linear(100, 75))  # Linear layer for y
 
     def forward(self, x, y):
         for i in range(self.t):

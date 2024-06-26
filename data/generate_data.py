@@ -13,12 +13,12 @@ from torch.utils.data import Dataset
 class FloatDataset(Dataset):
     def __init__(self, x_list, y_list, transform=None):
         self.x_list = [np.array(x, dtype=np.float64) for x in x_list]
-        self.y_list = np.array(y_list, dtype=np.float64)
+        self.y_list = [np.array(y, dtype=np.float64) for y in y_list]
         self.transform = transform
         
         # Convertir en tensors
         self.x_list = [torch.tensor(x, dtype=torch.float64) for x in self.x_list]
-        self.y_list = torch.tensor(self.y_list, dtype=torch.float64)
+        self.y_list = [torch.tensor(y, dtype=torch.float64) for y in self.y_list]
 
     def __len__(self):
         return len(self.x_list)

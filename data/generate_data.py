@@ -30,7 +30,7 @@ class FloatDataset(Dataset):
         if self.transform:
             x = self.transform(x)
         
-        return x, y
+        return y, x
     
 def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
 
@@ -104,6 +104,6 @@ def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
     y_filtered = middle_exclude(list(sorted_list3),20)
 
     dataset = FloatDataset(x_filtered, y_filtered)
-    return dataset
+    return A, dataset
 
 

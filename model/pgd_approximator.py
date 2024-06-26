@@ -1,20 +1,73 @@
-
+import torch
 import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+import numpy as np
+import matplotlib.pyplot as plt
 
-class GDPApproximator(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes,T=1):
-        super(GDPApproximator, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
+
+class PGDAppproximator(nn.Module):
+    def __init__(self, t):
+        super(PGDAppproximator, self).__init__()
+        self.t = t
+        self.layers = nn.ModuleList()  # ModuleList to hold dynamically created layers
         self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, num_classes)
+
+        # Create t pairs of linear layers
+        for i in range(t):
+            self.layers.append(nn.Linear(20, 20))  # Linear layer for x
+            self.layers.append(nn.Linear(20, 20))  # Linear layer for y
+
+    def forward(self, x, y):
+        for i in range(self.t):
+            x_linear = self.layers[2*i](x)  # Select linear layer for x
+            y_linear = self.layers[2*i+1](y)  # Select linear layer for y
+            x = x_linear - y_linear  # Subtract y_linear from x_linear
+            x = self.relu(x)  # Apply ReLU activation
+        
+        return x
     
-    def forward(self, x):
-        out = self.fc1(x)
-        out = self.relu(out)
-        out = self.fc2(out)
-        return out
+
+# Function to train the model
+def train_model(model, train_loader, criterion, optimizer, num_epochs=10):
+    train_losses = []
+    for epoch in range(num_epochs):
+        model.train()
+        epoch_loss = 0.0
+        for y, x in train_loader:
+            optimizer.zero_grad()
+            output = model(y, x)  # Pass y as input and x as target
+            loss = criterion(output, x)  # Use x as the target for loss calculation
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.item()
+        avg_epoch_loss = epoch_loss / len(train_loader)
+        train_losses.append(avg_epoch_loss)
+        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_epoch_loss:.4f}')
+    return train_losses
 
 
+# Function to test the model
+def test_model(model, test_loader, criterion):
+    model.eval()
+    test_loss = 0.0
+    with torch.no_grad():
+        for y, x in test_loader:
+            output = model(y, x)
+            test_loss += criterion(output, x).item()
+    avg_test_loss = test_loss / len(test_loader)
+    print(f'Test Loss: {avg_test_loss:.4f}')
+    return avg_test_loss
 
-
-
+# Function to plot losses
+def plot_losses(train_losses, test_losses=None):
+    plt.figure(figsize=(10, 5))
+    plt.plot(train_losses, label='Training Loss', marker='o')
+    if test_losses:
+        plt.plot(test_losses, label='Test Loss', marker='o')
+    plt.title('Losses')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+    plt.show()

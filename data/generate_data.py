@@ -59,8 +59,9 @@ def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
         gap_cvx.append(gap_function(A,x.value,y))
 
         # Calculate x* using the submatrix 
-        indices = np.where(x.value >= epsilon)[0]
-        sub_A=A[:,indices]
+        indices = np.where(x.value >= epsilon)
+        sub_A=A
+        sub_A[indices,:]=0
         sub_AtA = np.dot(sub_A.T, sub_A)
         sub_AtA_inv = np.linalg.inv(sub_AtA)
         sub_Aty = np.dot(sub_A.T, y)

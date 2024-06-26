@@ -71,3 +71,14 @@ def plot_losses(train_losses, test_losses=None):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+def plot_losses_iterations_k(losses, t_values, epoch_k):
+    plt.figure(figsize=(10, 6))
+    for i, t in enumerate(t_values):
+        plt.plot(losses[i], label=f't={t}')
+    plt.xlabel(f'Epoch {epoch_k}')
+    plt.ylabel('MSE Loss')
+    plt.title(f'MSE Loss at Epoch {epoch_k} for Different t Values')
+    plt.legend()
+    plt.grid(True)
+    plt.show()

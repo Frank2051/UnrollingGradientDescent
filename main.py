@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 target_matrix,dataset = generate_data()
 
 # Split dataset
-train_size = int(0.8 * len(dataset))S
+train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
 train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)

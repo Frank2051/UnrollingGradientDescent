@@ -39,6 +39,7 @@ def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
     raw_y_sample= np.random.normal(0, 1, size=(sample_size, y_dimension))
     y_norms = np.linalg.norm(raw_y_sample, axis=1, keepdims=True)
     y_sample = raw_y_sample / y_norms
+    y_sample = [row for row in y_sample]
 
     # searching x using cvxpy then support restrained inversion
     x_sample =[]
@@ -59,17 +60,20 @@ def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
         gap_cvx.append(gap_function(A,x.value,y))
 
         # Calculate x* using the submatrix 
-        indices = np.where(x.value >= epsilon)
-        sub_A=A
-        sub_A[indices,:]=0
+        indices = np.where(x.value >= epsilon)[0]
+        sub_A=A[:,indices]
+        sub_A=np.squeeze(sub_A, axis=1)
         sub_AtA = np.dot(sub_A.T, sub_A)
         sub_AtA_inv = np.linalg.inv(sub_AtA)
         sub_Aty = np.dot(sub_A.T, y)
 
         # Compute (A^T A)^-1 A^T y
-        x_opti = np.dot(sub_AtA_inv, sub_Aty)
+        sub_x_opti = np.dot(sub_AtA_inv, sub_Aty)
+        x_opti= np.zeros(100)
+        for k in range(len(indices)):
+            x_opti[indices[k]]=sub_x_opti[k]
         x_sample.append(x_opti)
-        gap_restrained_support.append(gap_function(sub_A,x_opti,y))
+        gap_restrained_support.append(gap_function(A,x_opti,y))
 
     print("mean of the gap with cvx : ", np.mean(gap_cvx))
     print("without 10 percents extrems on both sides: ", np.mean(middle_percent(gap_cvx,20)))

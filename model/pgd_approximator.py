@@ -15,8 +15,8 @@ class PGDAppproximator(nn.Module):
 
         # Create t pairs of linear layers
         for i in range(t):
-            self.layers.append(nn.Linear(100, 100))  # Linear layer for x
-            self.layers.append(nn.Linear(75, 100))  # Linear layer for y
+            self.layers.append(nn.Linear(100, 100).double())  # Linear layer for x with double precision
+            self.layers.append(nn.Linear(75, 100).double())   # Linear layer for y with double precision
 
     def forward(self, x, y):
         for i in range(self.t):
@@ -24,7 +24,6 @@ class PGDAppproximator(nn.Module):
             y_linear = self.layers[2*i+1](y)  # Select linear layer for y
             x = x_linear - y_linear  # Subtract y_linear from x_linear
             x = self.relu(x)  # Apply ReLU activation
-        
         return x
     
 
@@ -36,8 +35,8 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs=10):
         epoch_loss = 0.0
         for y, x in train_loader:
             optimizer.zero_grad()
-            output = model(y, x)  # Pass y as input and x as target
-            loss = criterion(output, x)  # Use x as the target for loss calculation
+            output = model(y.double(), x.double())  # Pass y and x as double precision
+            loss = criterion(output, x.double())    # Use x as the target for loss calculation with double precision
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
@@ -46,15 +45,14 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs=10):
         print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_epoch_loss:.4f}')
     return train_losses
 
-
 # Function to test the model
 def test_model(model, test_loader, criterion):
     model.eval()
     test_loss = 0.0
     with torch.no_grad():
         for y, x in test_loader:
-            output = model(y, x)
-            test_loss += criterion(output, x).item()
+            output = model(y.double(), x.double())  # Pass y and x as double precision
+            test_loss += criterion(output, x.double()).item()  # Calculate test loss with double precision
     avg_test_loss = test_loss / len(test_loader)
     print(f'Test Loss: {avg_test_loss:.4f}')
     return avg_test_loss

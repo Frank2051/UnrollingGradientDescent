@@ -62,7 +62,7 @@ def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
         # Calculate x* using the submatrix 
         indices = np.where(x.value >= epsilon)[0]
         sub_A=A[:,indices]
-        sub_A=np.squeeze(sub_A, axis=1)
+        #sub_A=np.squeeze(sub_A, axis=1)
         sub_AtA = np.dot(sub_A.T, sub_A)
         sub_AtA_inv = np.linalg.inv(sub_AtA)
         sub_Aty = np.dot(sub_A.T, y)
@@ -75,13 +75,13 @@ def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
         x_sample.append(x_opti)
         gap_restrained_support.append(gap_function(A,x_opti,y))
 
-    print("mean of the gap with cvx : ", np.mean(gap_cvx))
-    print("without 10 percents extrems on both sides: ", np.mean(middle_percent(gap_cvx,20)))
-    #plt.hist(gap_cvx)
-    #plt.title("distribution of cvx gaps")
-    #plt.show()
-    print("mean of the gap with restrained support : ", np.mean(gap_restrained_support))
-    print("without 10 percent extrems on both sides: ", np.mean(middle_percent(gap_restrained_support,20)))
+    # print("mean of the gap with cvx : ", np.mean(gap_cvx))
+    # print("without 10 percents extrems on both sides: ", np.mean(middle_percent(gap_cvx,20)))
+    # #plt.hist(gap_cvx)
+    # #plt.title("distribution of cvx gaps")
+    # #plt.show()
+    # print("mean of the gap with restrained support : ", np.mean(gap_restrained_support))
+    # print("without 10 percent extrems on both sides: ", np.mean(middle_percent(gap_restrained_support,20)))
     #plt.hist(gap_restrained_support)
     #plt.title("distribution of restrained support gaps")
     #plt.show()
@@ -96,19 +96,26 @@ def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
     #plt.title("gap mean by pourcent of extrems gaps ignored")
     #plt.show()
 
-    triplets = list(zip(gap_restrained_support, x_sample, y_sample))
+    # triplets = list(zip(gap_restrained_support, x_sample, y_sample))
+    # # Sort triplets by the first element of each triplet
+    # sorted_triplets = sorted(triplets, key=lambda x: x[0])
+    # # Separate sorted triplets back into three lists
+    # sorted_list1, sorted_list2, sorted_list3 = zip(*sorted_triplets)
+    # # Convert tuples back to lists
+    # x_filtered = middle_exclude(list(sorted_list2),20)
+    # y_filtered = middle_exclude(list(sorted_list3),20)
+        
+    # Convert to numpy float64 arrays
+    x_sample = np.array(x_sample, dtype=np.float64)
+    y_sample = np.array(y_sample, dtype=np.float64)
 
-    # Sort triplets by the first element of each triplet
-    sorted_triplets = sorted(triplets, key=lambda x: x[0])
-
-    # Separate sorted triplets back into three lists
-    sorted_list1, sorted_list2, sorted_list3 = zip(*sorted_triplets)
-
-    # Convert tuples back to lists
-    x_filtered = middle_exclude(list(sorted_list2),20)
-    y_filtered = middle_exclude(list(sorted_list3),20)
-
-    dataset = FloatDataset(x_filtered, y_filtered)
+    indices_under_threshold = [index for index, value in enumerate(gap_restrained_support) if value <= 10e-11]
+    #get best threshold by testing using test
+    print("mean of the gap with restrained support : ", np.mean(gap_restrained_support))
+    print("without extrems value: ", np.mean([gap_restrained_support[index] for index in indices_under_threshold]))
+    print("taille d'échantillon : ",len(indices_under_threshold))
+    print(len(x_sample[0]),len(y_sample[0]))
+    dataset = FloatDataset([x_sample[index] for index in indices_under_threshold], [y_sample[index] for index in indices_under_threshold])
     return A, dataset
 
 

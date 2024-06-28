@@ -4,6 +4,7 @@ import cvxpy as cp
 import torch
 import numpy as np
 from utils.gap_function import gap_function as gap_function
+from utils.gap_function import distance_to_solution as distance_to_solution
 from utils.tools import middle_percent as middle_percent
 from utils.tools import middle_exclude as middle_exclude
 from torch.utils.data import Dataset
@@ -56,10 +57,10 @@ for y in y_sample:
     problem = cp.Problem(objective, constraints)
 
     # Solve the problem
-    problem.solve()
+    problem.solve(verbose=False)
     # Truncaturation of negative values
     x.value[x.value<0]=0
-    gap_cvx.append(gap_function(A,x.value,y))
+    gap_cvx.append(abs(gap_function(A,x.value,y)))
 
     # Calculate x* using the submatrix 
     indices = np.where(x.value >= epsilon)[0]
@@ -75,27 +76,34 @@ for y in y_sample:
     for k in range(len(indices)):
         x_opti[indices[k]]=sub_x_opti[k]
     x_sample.append(x_opti)
-    gap_restrained_support.append(gap_function(A,x_opti,y))
+    gap_restrained_support.append(abs(gap_function(A,x_opti,y)))
+    #print("distance N2 :",distance_to_solution(A,x.value,y),distance_to_solution(A,x_opti,y),distance_to_solution(A,x.value,y)-distance_to_solution(A,x_opti,y))
+    #print("gap : ",gap_function(A,x.value,y),gap_function(A,x_opti,y),gap_function(A,x.value,y)-gap_function(A,x_opti,y))
 
 print("mean of the gap with cvx : ", np.mean(gap_cvx))
-print("without 10 percents extrems on both sides: ", np.mean(middle_percent(gap_cvx,20)))
-plt.hist(gap_cvx)
-plt.title("distribution of cvx gaps")
-plt.show()
+print("count of extrems values : ", sum(1 for x in gap_cvx if abs(x) > 10e-6))
+print("mean of the gap of extems values: ", np.mean([x for x in gap_cvx if abs(x) > 10e-6]))
 
-print("mean of the gap with restrained support : ", np.mean(gap_restrained_support))
-print("without 10 percent extrems on both sides: ", np.mean(middle_percent(gap_restrained_support,20)))
-logbins=np.logspace(-6,2,80)
-plt.hist(gap_restrained_support,bins=logbins)
-plt.title("distribution of restrained support gaps")
-plt.xscale('log')
-plt.show()
-plt.hist(middle_percent(gap_restrained_support,20))
-plt.title("distribution of restrained support gaps without 10 percent extrems on both sidess")
-plt.show()
-plt.hist(middle_percent(gap_restrained_support,90))
-plt.title("distribution of restrained support gaps without 40 percent extrems on both sidess")
-plt.show()
+# print("without 10 percents extrems on both sides: ", np.mean(middle_percent(gap_cvx,20)))
+# plt.hist(gap_cvx)
+# plt.title("distribution of cvx gaps")
+# plt.show()
+
+print("mean of the gap with restrained support : ", np.mean(gap_restrained_support)) 
+print("count of extrems values : ", sum(1 for x in gap_restrained_support if abs(x) > 10e-12))
+print("mean of the gap of extems values: ", np.mean([x for x in gap_restrained_support if abs(x) > 10e-12]))
+# print("mean of the gap without extems values: ", np.mean([x for x in gap_restrained_support if abs(x) <= 10e-2]))
+# print("without 10 percent extrems on both sides: ", np.mean(middle_percent(gap_restrained_support,20)))
+# #logbins=np.logspace(-6,2,80)
+# #plt.hist(gap_restrained_support,bins=logbins)
+# plt.hist(gap_restrained_support)
+# plt.title("distribution of restrained support gaps")
+# #plt.xscale('log')
+# plt.show()
+# plt.hist(middle_percent(gap_restrained_support,20))
+# plt.title("distribution of restrained support gaps without 10 percent extrems on both sidess")
+# plt.show()
+
 
 list_gap_mean=[]
 for i in range(1,101):
@@ -104,17 +112,23 @@ plt.plot([k for k in range(1,101)],list_gap_mean)
 plt.title("gap mean by pourcent of extrems gaps ignored")
 plt.show()
 
-triplets = list(zip(gap_restrained_support, x_sample, y_sample))
 
-# Sort triplets by the first element of each triplet
-sorted_triplets = sorted(triplets, key=lambda x: x[0])
+for i in range(0,15):
+    print(i, len([x for x in gap_restrained_support if abs(x) > 10 ** (-i)]), np.max([x for x in gap_restrained_support if abs(x) <= 10 ** (-i)]))
+#threshold at 10e-2
 
-# Separate sorted triplets back into three lists
-sorted_list1, sorted_list2, sorted_list3 = zip(*sorted_triplets)
 
-# Convert tuples back to lists
-x_filtered = middle_exclude(list(sorted_list2),20)
-y_filtered = middle_exclude(list(sorted_list3),20)
+# triplets = list(zip(gap_restrained_support, x_sample, y_sample))
 
-dataset = FloatDataset(x_filtered, y_filtered)
-#return A, dataset
+# # Sort triplets by the first element of each triplet
+# sorted_triplets = sorted(triplets, key=lambda x: x[0])
+
+# # Separate sorted triplets back into three lists
+# sorted_list1, sorted_list2, sorted_list3 = zip(*sorted_triplets)
+
+# # Convert tuples back to lists
+# x_filtered = middle_exclude(list(sorted_list2),20)
+# y_filtered = middle_exclude(list(sorted_list3),20)
+
+# dataset = FloatDataset(x_filtered, y_filtered)
+# #return A, dataset

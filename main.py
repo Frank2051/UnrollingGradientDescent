@@ -52,7 +52,7 @@ for i, t in enumerate(t_values):
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Train the model
-    train_losses = train_model(model, train_loader, criterion, optimizer, t, num_epochs=num_epochs)
+    train_losses = train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
 
     # Test the model
     test_loss = test_model(model, test_loader, criterion)

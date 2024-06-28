@@ -35,7 +35,7 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs=10):
         epoch_loss = 0.0
         for y, x in train_loader:
             optimizer.zero_grad()
-            output = model(y.double(), x.double())  # Pass y and x as double precision
+            output = model(x.double(),y.double())  # Pass y and x as double precision
             loss = criterion(output, x.double())    # Use x as the target for loss calculation with double precision
             loss.backward()
             optimizer.step()
@@ -51,7 +51,7 @@ def test_model(model, test_loader, criterion):
     test_loss = 0.0
     with torch.no_grad():
         for y, x in test_loader:
-            output = model(y.double(), x.double())  # Pass y and x as double precision
+            output = model( x.double(),y.double())  # Pass y and x as double precision
             test_loss += criterion(output, x.double()).item()  # Calculate test loss with double precision
     avg_test_loss = test_loss / len(test_loader)
     print(f'Test Loss: {avg_test_loss:.4f}')

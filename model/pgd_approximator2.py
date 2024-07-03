@@ -6,9 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class PGDAppproximator(nn.Module):
+class PGDAppproximator2(nn.Module):
     def __init__(self, t):
-        super(PGDAppproximator, self).__init__()
+        super(PGDAppproximator2, self).__init__()
         self.t = t
         self.layers = nn.ModuleList()  # ModuleList to hold dynamically created layers
         self.relu = nn.ReLU()
@@ -17,12 +17,13 @@ class PGDAppproximator(nn.Module):
         for i in range(t):
             self.layers.append(nn.Linear(100, 100).double())  # Linear layer for x with double precision
             self.layers.append(nn.Linear(75, 100).double())   # Linear layer for y with double precision
-
+            self.layers.append(nn.Parameter(torch.ones(1)))
+    
     def forward(self, x, y):
         for i in range(self.t):
-            x_linear = self.layers[2*i](x)  # Select linear layer for x
-            y_linear = self.layers[2*i+1](y)  # Select linear layer for y
-            x = x_linear - y_linear  # Subtract y_linear from x_linear
+            x_linear = self.layers[3*i](x)  # Select linear layer for x
+            y_linear = self.layers[3*i+1](y)  # Select linear layer for y
+            x = x- self.layers[3*i+2] *(x_linear - y_linear)  # Subtract y_linear from x_linear
             x = self.relu(x)  # Apply ReLU activation
         return x
     

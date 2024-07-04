@@ -109,7 +109,7 @@ def generate_data(A=np.random.randn(75, 100),sample_size=1200,epsilon = 10e-12):
     x_sample = np.array(x_sample, dtype=np.float64)
     y_sample = np.array(y_sample, dtype=np.float64)
 
-    indices_under_threshold = [index for index, value in enumerate(gap_restrained_support) if value <= 10e-11]
+    indices_under_threshold = [index for index, value in enumerate(gap_restrained_support) if value <= 10e-12]
     #get best threshold by testing using test
     print("mean of the gap with restrained support : ", np.mean(gap_restrained_support))
     print("without extrems value: ", np.mean([gap_restrained_support[index] for index in indices_under_threshold]))

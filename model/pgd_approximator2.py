@@ -108,3 +108,27 @@ def plot_log_losses_iterations_k(losses, t_values, epoch_k):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+
+def predict(model, inputs):
+    # Ensure the model is in evaluation mode
+    model.eval()
+    
+    # Disable gradient calculations for inference
+    with torch.no_grad():
+        # Initialize an empty list to store predictions
+        predictions = []
+        
+        for x in inputs:
+            # Ensure the input is a tensor and move it to the correct device (CPU/GPU)
+            if not isinstance(x, torch.Tensor):
+                x = torch.tensor(x)
+            x = x.to(next(model.parameters()).device)
+            
+            # Forward pass through the model to get the prediction
+            y_pred = model(x)
+            
+            # Append the prediction to the list
+            predictions.append(y_pred)
+    
+    return predictions

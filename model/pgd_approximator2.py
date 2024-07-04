@@ -10,20 +10,23 @@ class PGDAppproximator2(nn.Module):
     def __init__(self, t):
         super(PGDAppproximator2, self).__init__()
         self.t = t
-        self.layers = nn.ModuleList()  # ModuleList to hold dynamically created layers
+        self.x_layers = nn.ModuleList()  # ModuleList to hold dynamically created x linear layers
+        self.y_layers = nn.ModuleList()  # ModuleList to hold dynamically created y linear layers
+        self.mus = nn.ParameterList()    # ParameterList to hold the scalar parameters
         self.relu = nn.ReLU()
 
-        # Create t pairs of linear layers
+        # Create t pairs of linear layers and a parameter for each pair
         for i in range(t):
-            self.layers.append(nn.Linear(100, 100).double())  # Linear layer for x with double precision
-            self.layers.append(nn.Linear(75, 100).double())   # Linear layer for y with double precision
-            self.layers.append(nn.Parameter(torch.ones(1)))
-    
+            self.x_layers.append(nn.Linear(100, 100).double())  # Linear layer for x with double precision
+            self.y_layers.append(nn.Linear(75, 100).double())   # Linear layer for y with double precision
+            self.mus.append(nn.Parameter(torch.ones(1).double()))  # Scalar parameter
+
     def forward(self, x, y):
         for i in range(self.t):
-            x_linear = self.layers[3*i](x)  # Select linear layer for x
-            y_linear = self.layers[3*i+1](y)  # Select linear layer for y
-            x = x- self.layers[3*i+2] *(x_linear - y_linear)  # Subtract y_linear from x_linear
+            x_linear = self.x_layers[i](x)  # Select linear layer for x
+            y_linear = self.y_layers[i](y)  # Select linear layer for y
+            mu = self.mus[i]  # Access the scalar parameter directly
+            x = x - mu * (x_linear - y_linear)  # Subtract y_linear from x_linear
             x = self.relu(x)  # Apply ReLU activation
         return x
     
@@ -90,6 +93,18 @@ def plot_losses_iterations_k(losses, t_values, epoch_k):
     plt.xlabel(f'Epoch {epoch_k}')
     plt.ylabel('MSE Loss')
     plt.title(f'MSE Loss at Epoch {epoch_k} for Different t Values')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def plot_log_losses_iterations_k(losses, t_values, epoch_k):
+
+    plt.figure(figsize=(10, 6))
+    for i, t in enumerate(t_values):
+        plt.loglog(losses[i], label=f't={t}')  
+    plt.xlabel(f'Epoch {epoch_k}')
+    plt.ylabel('Log MSE Loss')
+    plt.title(f'Log MSE Loss at Epoch {epoch_k} for Different t Values')
     plt.legend()
     plt.grid(True)
     plt.show()

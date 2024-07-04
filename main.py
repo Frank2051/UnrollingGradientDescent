@@ -19,7 +19,7 @@ model = PGDAppproximator(t=3)
 
 # Define loss function and optimizer
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # # Train the model
 # train_losses = train_model(model, train_loader, criterion, optimizer, num_epochs=10)
@@ -33,15 +33,14 @@ optimizer = optim.Adam(model.parameters(), lr=0.0001)
 # study effectivness of numbers of iterations
 
 # Define range of t values to try
-t_values = [1, 2, 3, 5,7,10]
+t_values = [1, 2, 3, 4, 5]
 
 # Define other training parameters
-num_epochs = 200
-k = num_epochs  # k-th epoch to plot
+num_epochs = 20
+k = 10  # k-th epoch to plot
 
 # Initialize lists to store losses for each t
 losses_by_t = [[] for _ in range(len(t_values))]
-losses2_by_t = [[] for _ in range(len(t_values))]
 
 # Loop over different t values
 for i, t in enumerate(t_values):
@@ -50,21 +49,18 @@ for i, t in enumerate(t_values):
 
     # Define loss function and optimizer
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.0005)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Train the model
-    train_losses, test_losses = train_model(model, train_loader,test_loader, criterion, optimizer, num_epochs=num_epochs)
+    train_losses = train_model(model, train_loader,test_loader, criterion, optimizer, num_epochs=num_epochs)[0]
+
     # Test the model
     test_loss = test_model(model, test_loader, criterion)
 
-    #plot_losses(train_losses,test_loss)
+    plot_losses(train_losses,test_loss)
 
     # Store losses for plotting
     losses_by_t[i] = train_losses
-    losses2_by_t[i] = test_losses
 
 # Plot losses for each t at the k-th epoch
 plot_losses_iterations_k(losses_by_t, t_values, epoch_k=k)
-
-# Plot test losses for each t at the k-th epoch
-# plot_losses_iterations_k(losses2_by_t, t_values, epoch_k=k)
